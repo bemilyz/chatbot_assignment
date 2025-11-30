@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import './App.css'
 
+// Mock data
 const packageDatabase = {
   'TST123456' : {
     status: 'In Transit',
@@ -53,7 +54,9 @@ function App() {
   const hasInitialized = useRef(false);
   const lastMessage = useRef(null);
 
+  // Starting message
   useEffect(() => {
+    // Prevent double render in dev mode
     if(!hasInitialized.current) {
       hasInitialized.current = true
       addBotMessage("Hi! How can I help you today? \n1. Track a package\n2. Report a lost package\n3. Speak with an agent");
@@ -136,11 +139,13 @@ function App() {
     }
   };
 
+  // Unexpected user input
   const handleUnexpectedState = (input) => {
     addBotMessage("I seem to have lost track of our conversation. Let me restart. \n\nWhat would you like to do?\n1. Track a package\n2. Report a lost package\n3. Speak with an agent");
     setConversationState('greeting');
   };
 
+  // State immediately after the greeting, user responds one of 1, 2, or 3
   const handleGreetingResponse = (input) => { 
     if (input.includes('1')) {
       setConversationState('awaitingTrackingNumber');
@@ -159,6 +164,7 @@ function App() {
     }
   };
 
+  // User inputs a tracking number
   const handleTrackingNumberInput = (input) => {
     const upper = input.trim().toUpperCase();
     
@@ -191,6 +197,7 @@ function App() {
     }
   };
 
+  // User inputs an email
   const handleEmailInput = (input) => {
     if (!validateEmail(input)) {
       addBotMessage('That does not appear to be a valid email address. \n\nPlease enter your email address in the format: example@gmail.com');
@@ -199,6 +206,7 @@ function App() {
 
     setUserData(prev => ({...prev, email: input}));
 
+    // Invalid tracking number, try to find if there is a tracking number associated with their email
     if (!userData.trackingNumber || !packageDatabase[userData.trackingNumber]) {
       if (emailPackageDatabase[input]) {
          addBotMessage('It seems that there is an active order for this email. Could you check the tracking number and try again?');
@@ -210,6 +218,7 @@ function App() {
         addBotMessage('I do not recognize this email. Could you check the spelling and try again?')
       }
     } else if (packageDatabase[userData.trackingNumber].email === input) {
+      // Process claim if tracking number and email are verified 
       addBotMessage("Email verified successfully! \n\nNow I can proceed with filing your claim for a refund or reshipment. Your case number is #CLM-" + Math.floor(Math.random() * 10000) + ". \n\nYou'll receive updates at " + userData.email + " within 24 hours.");
       setTimeout(() => {
         addBotMessage("Is there anything else I can help you with? \n1. Track a package\n2. Report a lost package\n3. Speak with an agent");
@@ -220,6 +229,7 @@ function App() {
     }
   }
 
+  // User wants to report a lost package/make a claim
   const handleLostPackageReport = (input) => {
     const upper = input.trim().toUpperCase();
     
@@ -249,6 +259,7 @@ function App() {
     }
   };
 
+  // Tracking number was incorrect so the next options are try again, file a claim, or speak to an agent
   const handleIncorrectInfo = (input) => {
     if (input.includes('1')) {
       addBotMessage("Please provide your tracking number.\n\n(Format: TST followed by 6 digits)");
@@ -268,6 +279,7 @@ function App() {
     }
   }
 
+  // Next action is to file a claim, connect to an agent, or retry
   const handleConfirmation = (input) => {  
     if (input.includes('1')) {
       addBotMessage("To file a claim, I'll need to verify your email address.\n\nPlease provide your email:");
